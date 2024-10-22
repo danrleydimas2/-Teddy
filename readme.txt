@@ -1,1 +1,1 @@
-O objetivo desse projeto é encurtar url
+Esse projeto tem o  objetivo de encurtar url
