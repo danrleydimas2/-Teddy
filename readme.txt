@@ -6,3 +6,4 @@ a rota "api/users/login" vai retornar um token caso o login seja reaizado com su
 Para se autenticar, e acessar as rotas que precisam de login, por favor, utilize o Bearer Token 
 
 banco de dados usado: Mysql
+ crie seu .env apartir do .envexample para colocar suas variaveis de ambiente
