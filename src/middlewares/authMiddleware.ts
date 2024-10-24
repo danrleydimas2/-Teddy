@@ -7,27 +7,22 @@ import jwt from 'jsonwebtoken'
 
 
 async function getUser(id: number) {
-    con.query(`SELECT * from Users u where u.idusers ='${id}' limit 1 `, async (err, result) => {
-            if(!result){
-                    return {}
-            }
-        const convertedResult = JSON.parse(JSON.stringify(result))
-        const resultId = convertedResult[0].idusers
-        const resultName = convertedResult[0].name
-        const resultEmail = convertedResult[0].email
+    const query = `SELECT * from Users u where u.idusers ='${id}' limit 1 `
+    const [rows] = await con.execute(query)
 
-        return { id:resultId, name:resultName, email:resultEmail}
-        
+    const convertedResult = JSON.parse(JSON.stringify(rows))
+    const resultId = convertedResult[0].idusers
+    const resultName = convertedResult[0].name
+    const resultEmail = convertedResult[0].email
 
-    })
-   
-    return {}
+    return { id: resultId, name: resultName, email: resultEmail }
+
 
 }
-export const authMiddleware =  async (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const { authorization } = req.headers
 
-    if (!authorization) { 
+    if (!authorization) {
         res.status(StatusCodes.UNAUTHORIZED).send("unauthorized")
     }
 
@@ -35,9 +30,23 @@ export const authMiddleware =  async (req: Request, res: Response, next: NextFun
     const { id } = jwt.verify(token, process.env.JWT_PASS) as JwtPayload
 
     let loggedUser = await getUser(id)
-    if(!loggedUser){
-         res.status(StatusCodes.UNAUTHORIZED).send("unauthorized")
+    if (!loggedUser) {
+        res.status(StatusCodes.UNAUTHORIZED).send("unauthorized")
     }
+    req.user = loggedUser
+
     next()
 
+}
+
+export const verifyLogin = async (req: Request, res: Response, next: NextFunction) => {
+    const { authorization } = req.headers
+    let loggedUser = {}
+    if (authorization) {
+        const token = authorization.split(' ')[1]
+        const { id } = jwt.verify(token, process.env.JWT_PASS) as JwtPayload
+        loggedUser = await getUser(id)
+    }
+    req.user = loggedUser
+    next()
 }

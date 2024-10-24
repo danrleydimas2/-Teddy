@@ -9,7 +9,8 @@
     "module": "ESNext",
     "target": "ESNext",
     "noEmit": true,
-    "allowImportingTsExtensions":true
+    "allowImportingTsExtensions":true,
+    "typeRoots": ["./src/@types", ".node_modules/@types"]
   }
  
 

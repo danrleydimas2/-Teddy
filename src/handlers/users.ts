@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt'
 import { StatusCodes } from 'http-status-codes'
 import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
-import { Connection } from "mysql2/typings/mysql/lib/Connection";
+
 
 type JwtPayload = {
   id: number
@@ -13,7 +13,18 @@ type JwtPayload = {
 dotenv.config()
 
 
-export function getUsers(req: Request, res: Response) {
+export async function getUsers(req: Request, res: Response) {
+  try {
+    const query ='SELECT * FROM Users'
+    const [ rows ] = await con.execute( query )
+  
+    res.status(StatusCodes.OK).send(rows)   
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Erro no servidor', error: err });
+    
+  }
+ 
+
   con.query('SELECT * FROM Users', (err, result) => {
     if (err) {
       res.send(err)
@@ -26,34 +37,32 @@ export async function createUser(req: Request<{}, {}, CreateUserDto>, res: Respo
 
   const { name, email, password } = req.body
   const hashPassword = await bcrypt.hash(password, 10)
-  con.query(`INSERT INTO Users VALUES (null,'${name}', '${email}', '${hashPassword}')`, (err, result) => {
-
-    if (err) {
-      res.send(err)
-    }
-
-    res.status(StatusCodes.CREATED).send("successfully created")
-  })
+  
+  try {
+    const query =`INSERT INTO Users VALUES (null,'${name}', '${email}', '${hashPassword}')`
+    const [ rows ] = await con.execute( query )
+  
+    res.status(StatusCodes.CREATED).send("successfully created")   
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Erro no servidor', error: err });
+    
+  }
+ 
+  
 
 
 }
 export async function login(req: Request, res: Response) {
   const { email, password } = req.body
+  try {
+    const query =`SELECT * from Users u where u.email ='${email}' limit 1 `
+    const [ rows ] = await con.execute( query )
 
-  con.query(`SELECT * from Users u where u.email ='${email}' limit 1 `, async (err, result) => {
-
-    if (err) {
-      res.send(err)
-    }
-
-    if (!result) {
-      return {}
-    }
-    const convertedResult = JSON.parse(JSON.stringify(result))
+    const convertedResult = JSON.parse(JSON.stringify(rows))
 
 
     if (convertedResult.length === 0) {
-      return res.status(StatusCodes.FORBIDDEN).send('invalid email or password')
+      res.status(StatusCodes.FORBIDDEN).send('invalid email or password')
     }
 
     const resultId = convertedResult[0].idusers
@@ -75,11 +84,11 @@ export async function login(req: Request, res: Response) {
       password: '',
       token
 
-    })
-
-
-  })
-
+    }) 
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: 'Erro no servidor', error: err });
+    
+  }
   
 
 
