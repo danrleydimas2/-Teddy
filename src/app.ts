@@ -1,22 +1,21 @@
 
 import express from 'express'
-import con from '../connection.ts'
+
 import { Router, Request, Response } from 'express';
 
+import  usersRouter  from './routes/users.ts'
+import urlsRouter from './routes/urls.ts'
 
-const app = express();
+const app = express()
 
 const route = Router()
-
 app.use(express.json())
-route.get('/urls', (req: Request, res: Response) => {
-  con.query('SELECT * FROM URLS',(err,result)=>{
-    if(err){
-      res.send(err)
-    }
-    res.send(result)
-  })
-})
+
+ 
+
+app.use('/api/users',usersRouter)
+app.use('/api/urls',urlsRouter)
+
 route.get('/', (req: Request, res: Response) => {
   res.json({ message: 'hello world with Typescript' })
 })
